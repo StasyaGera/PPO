@@ -15,8 +15,8 @@ public class LRUCache<K, V> {
         this.capacity = capacity;
         head = new Node();
         tail = new Node();
-        head.setNext(tail);
-        tail.setPrev(head);
+        head.next = tail;
+        tail.prev = head;
         keyToValueMap = new HashMap<>();
     }
 
@@ -48,9 +48,7 @@ public class LRUCache<K, V> {
         assert key != null;
         assert keyToValueMap.containsKey(key);
 
-        Node victim = keyToValueMap.get(key);
-        victim.prev.setNext(victim.next);
-        victim.next.setPrev(victim.prev);
+        keyToValueMap.get(key).remove();
         keyToValueMap.remove(key);
     }
 
@@ -77,14 +75,6 @@ public class LRUCache<K, V> {
             placeOnTop(this);
         }
 
-        void setNext(Node next) {
-            this.next = next;
-        }
-
-        void setPrev(Node prev) {
-            this.prev = prev;
-        }
-
         void update(V value) {
             this.remove();
             this.value = value;
@@ -102,10 +92,11 @@ public class LRUCache<K, V> {
         }
 
         private void placeOnTop(Node node) {
-            node.setNext(head.next);
-            head.next.setPrev(node);
-            node.setPrev(head);
-            head.setNext(node);
+            Node second = head.next;
+            node.next = second;
+            second.prev = node;
+            node.prev = head;
+            head.next = node;
         }
     }
 }

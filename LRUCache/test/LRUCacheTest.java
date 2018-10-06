@@ -2,6 +2,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class LRUCacheTest {
@@ -17,19 +18,21 @@ class LRUCacheTest {
     void put() {
         for (int i = 0; i < capacity + (capacity / 2); i++) {
             iiLruCache.put(i, i);
-            assertEquals(Math.min(i + 1, capacity), iiLruCache.size());
-        }
-
-        for (int i = capacity / 2 + 1; i < capacity + capacity / 2; i++) {
-            assertEquals(i, iiLruCache.get(i).intValue());
+            assertEquals(Math.min(i + 1, capacity), iiLruCache.size(),
+                    iiLruCache.size() > capacity
+                            ? "Cache size larger than capacity"
+                            : "Cache size is not equal to amount of elements held");
         }
 
         for (int i = 0; i < capacity / 2; i++) {
-            try {
-                iiLruCache.get(i);
-                fail("Did not overwrite elements");
-            } catch (AssertionError ignored) {
-            }
+            int finalI = i;
+            assertThrows(AssertionError.class, () -> iiLruCache.get(finalI),
+                    "Did not overwrite element " + finalI);
+        }
+
+        for (int i = capacity / 2; i < capacity + (capacity / 2); i++) {
+            assertEquals(i, iiLruCache.get(i).intValue(),
+                    "Wrong value for key " + i);
         }
     }
 
@@ -49,7 +52,7 @@ class LRUCacheTest {
             try {
                 iiLruCache.get(i);
             } catch (AssertionError error) {
-                fail("Did not put accessed elements on top");
+                fail("Did not put accessed element " + i + " on top");
             }
         }
     }
@@ -62,14 +65,14 @@ class LRUCacheTest {
 
         for (int i = 0; i < capacity; i++) {
             iiLruCache.delete(i);
+            assertEquals(capacity - i - 1, iiLruCache.size(),
+                    "Size does not change after delete");
         }
 
         for (int i = 0; i < capacity; i++) {
-            try {
-                iiLruCache.get(i);
-                fail("Deleted elements still accessible");
-            } catch (AssertionError ignored) {
-            }
+            int finalI = i;
+            assertThrows(AssertionError.class, () -> iiLruCache.get(finalI),
+                    "Deleted element " + finalI + " still accessible");
         }
     }
 }
